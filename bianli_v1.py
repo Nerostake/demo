@@ -3,7 +3,7 @@
 # 程序： 输入路径对本地文件夹里的文件进行排序
 # 版本:  v1.0
 # 作者： Nerostake
-# 时间： 2014-05-29
+# 时间： 2014-06-8
 # 功能： 1. 根据输入统计文件个数 标明哪些为文件夹，哪些为文件
 #        2. 根据不同的要求对文件进行排序
 #---------------------------------------------
@@ -17,7 +17,7 @@ FOREGROUND_GREEN=0x02
 FOREGROUND_BLUE=0x01
 
 if os.name != 'nt':
-'''检验系统是否为windows'''
+	'''检验系统是否为windows'''
 	print('This is for windows...')
 	sys.exit()
 
@@ -52,13 +52,14 @@ class travel:
 	
 	def __init__(self, dir_path):
 		self.dir_path=dir_path	
-		self.data={x:[0] for x in listdir(dir_path)}
+		self.data={x:[0] for x in os.listdir(dir_path)}
 		
 	def bianli(self, path):
 		'''遍历路径下所有子文件/文件夹,返回总大小'''
 		dir_size=0
 		for root, dirs, files in os.walk(path):
 			dir_size+=sum(os.path.getsize(os.path.join(root, name)) for name in files)
+		dir_size=dir_size/1024
 		return dir_size
 	
 	
@@ -68,7 +69,7 @@ class travel:
 		print('These items are: (green-dir|blue-nondir)')
 		clr=color()
 		num_dir=0
-		for x in listdir(self.dir_path):
+		for x in os.listdir(self.dir_path):
 			if os.path.isdir(os.path.join(self.dir_path, x)):
 				self.data[x][0]=1
 				num_dir+=1
@@ -80,21 +81,45 @@ class travel:
 	
 	def get_size(self):
 		'''获得路径下每一个文件/文件夹的大小'''
-		for x in listdir(self.dir_path):
-			if self.data[x][0]=0:
-				self.data[x].append(os.path.getsize(os.path.join(self.dir_path, x)))
+		for x in os.listdir(self.dir_path):
+			if self.data[x][0]==0:
+				self.data[x].append((os.path.getsize(os.path.join(self.dir_path, x)))/1024)
 			else:
-				path=os.path.join(self.path, x)
+				path=os.path.join(self.dir_path, x)
 				self.data[x].append(self.bianli(path))
 				
 	def sort_size(self):
 		'''按大小排序'''
 		print('These items are sorted by size as:')
-		
+		self.get_size()
+		#按大小倒序排列输出
+		clr=color()
+		print('items                                                 size')
+		for x in sorted(self.data.items(), key=lambda d:d[1][1], reverse=True):
+			if x[1][0]==1:
+				clr.print_green('{0:50s}{1:10.2f}kb'.format(x[0],x[1][1]))
+			else:
+				clr.print_blue('{0:50s}{1:10.2f}kb'.format(x[0],x[1][1]))
 	
 	def sort_init(self):
-	
-	
-	
-	
-		
+		'''按首字母排序'''
+		print('These items are sorted by initial letter as:')
+		self.get_size()
+		#按首字母顺序排列输出
+		clr=color()
+		print('items                                                 size')
+		for x in sorted(self.data.items(), key=lambda d:d[0]):
+			if x[1][0]==1:
+				clr.print_green('{0:50s}{1:10.2f}kb'.format(x[0],x[1][1]))
+			else:
+				clr.print_blue('{0:50s}{1:10.2f}kb'.format(x[0],x[1][1]))
+				
+if __name__ == '__main__':
+	'''以路径 C:\Python27 为例'''
+	wt=travel('C:\Python27')
+	print('--------------------------------------------------------------------------------')
+	wt.listitem()
+	print('--------------------------------------------------------------------------------')
+	wt.sort_size()
+	print('--------------------------------------------------------------------------------')
+	wt.sort_init()	
